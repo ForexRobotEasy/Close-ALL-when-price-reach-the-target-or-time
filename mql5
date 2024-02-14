@@ -1,0 +1,69 @@
+
+//+------------------------------------------------------------------+
+//|                                                 CloseAll.mq5     |
+//|                   Copyright 2022, Forex Robot Easy Team              |
+//|                              https://forexroboteasy.com              |
+//+------------------------------------------------------------------+
+
+//+------------------------------------------------------------------+
+//| Expert initialization function                                   |
+//+------------------------------------------------------------------+
+int OnInit()
+{
+    // Specify the closing time in HH:MM format
+    string closingTime = '23:59';
+
+    // Specify the profit target in points
+    int profitTarget = 100;
+
+    // Specify the loss target in points
+    int lossTarget = -50;
+
+    // Calculate the closing time in seconds
+    datetime closingDateTime = StrToTime(DayToString(TimeCurrent()) + ' ' + closingTime);
+    int closingTimeSeconds = TimeHour(closingDateTime) * 3600 + TimeMinute(closingDateTime) * 60;
+
+    // Iterate through all open positions
+    for (int i = 0; i < PositionsTotal(); i++)
+    {
+        // Check if the position is open
+        if (PositionSelectByTicket(PositionGetTicket(i)))
+        {
+            // Calculate the profit/loss in points
+            double positionProfit = PositionGetDouble(POSITION_PROFIT);
+            int positionProfitPoints = (int)MathRound(positionProfit / SymbolInfoDouble(Symbol(), SYMBOL_POINT));
+
+            // Check if the profit or loss target is reached
+            if (positionProfitPoints >= profitTarget || positionProfitPoints <= lossTarget)
+            {
+                // Close the position
+                PositionClose(PositionGetTicket(i));
+            }
+        }
+    }
+
+    // Check if the current time is greater than or equal to the closing time
+    if (TimeCurrent() >= closingTimeSeconds)
+    {
+        // Close all remaining open positions
+        for (int i = 0; i < PositionsTotal(); i++)
+        {
+            // Check if the position is open
+            if (PositionSelectByTicket(PositionGetTicket(i)))
+            {
+                // Close the position
+                PositionClose(PositionGetTicket(i));
+            }
+        }
+    }
+
+    return(INIT_SUCCEEDED);
+}
+
+//+------------------------------------------------------------------+
+//| Expert deinitialization function                                 |
+//+------------------------------------------------------------------+
+void OnDeinit(const int reason)
+{
+    // No action required
+}
